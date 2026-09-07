@@ -3,6 +3,9 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  # Lets the whole matrix be rehearsed without cutting a release, so that a
+  # broken runner image is discovered deliberately rather than at tag time.
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -11,32 +14,26 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  create-release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Create the release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release create "${GITHUB_REF_NAME}" \
-            --title "${GITHUB_REF_NAME}" \
-            --generate-notes \
-            --verify-tag
-
-  upload:
-    needs: create-release
+  build:
     strategy:
+      # Report every broken target in one run rather than only the first.
       fail-fast: false
       matrix:
         include:
-          # `asset` must be `<os>-<arch>` in Go's vocabulary: that is what
-          # `gh extension install` looks for when picking a binary.
-          - { runner: ubuntu-latest,  target: x86_64-unknown-linux-musl,  asset: linux-amd64,      cross: true }
-          - { runner: ubuntu-latest,  target: aarch64-unknown-linux-musl, asset: linux-arm64,      cross: true }
-          - { runner: macos-latest,   target: x86_64-apple-darwin,        asset: darwin-amd64,     cross: false }
-          - { runner: macos-latest,   target: aarch64-apple-darwin,       asset: darwin-arm64,     cross: false }
-          - { runner: windows-latest, target: x86_64-pc-windows-msvc,     asset: windows-amd64.exe, cross: false }
+          # `asset` must be `<os>-<arch>` in Go's vocabulary: that is the suffix
+          # `gh extension install` matches on when picking a binary.
+          #
+          # Runner images are pinned, not `-latest`. GitHub repoints the latest
+          # labels on its own schedule -- `macos-latest` became macOS 26 in June
+          # 2026, `windows-latest` moved to VS 2026 -- and a release workflow
+          # that only runs on a tag would discover that mid-release. Pinned
+          # images are retired loudly, with a deprecation window; drifting ones
+          # change under you silently.
+          - { runner: ubuntu-24.04,  target: x86_64-unknown-linux-musl,  asset: linux-amd64,       cross: true }
+          - { runner: ubuntu-24.04,  target: aarch64-unknown-linux-musl, asset: linux-arm64,       cross: true }
+          - { runner: macos-15,      target: aarch64-apple-darwin,       asset: darwin-arm64,      cross: false }
+          - { runner: macos-15,      target: x86_64-apple-darwin,        asset: darwin-amd64,      cross: false }
+          - { runner: windows-2022,  target: x86_64-pc-windows-msvc,     asset: windows-amd64.exe, cross: false }
 
     runs-on: ${{ matrix.runner }}
     steps:
@@ -50,8 +47,8 @@ jobs:
         with:
           key: ${{ matrix.target }}
 
-      # musl gives a statically linked Linux binary, which is the whole point
-      # of shipping a standalone tool: no glibc version to match at the far end.
+      # musl gives a statically linked Linux binary, which is the whole point of
+      # shipping a standalone tool: no glibc version to match at the far end.
       - uses: taiki-e/install-action@v2
         if: matrix.cross
         with:
@@ -66,17 +63,56 @@ jobs:
             cargo build --release --locked --target "${{ matrix.target }}"
           fi
 
-      - name: Upload the binary
+      - name: Stage the asset
         shell: bash
+        run: |
+          binary="target/${{ matrix.target }}/release/gh-pr-digest"
+          if [ -f "$binary.exe" ]; then
+            binary="$binary.exe"
+          fi
+
+          mkdir -p dist
+          # The name and tag in front of the platform suffix are for humans
+          # reading the release page; only the suffix is load-bearing.
+          cp "$binary" "dist/gh-pr-digest_${GITHUB_REF_NAME}_${{ matrix.asset }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: build
+    # Only a tag produces a release; a manual run is a rehearsal that stops
+    # after the binaries have been proven to build.
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Checksum
+        run: |
+          cd dist
+          sha256sum * > checksums.txt
+          cat checksums.txt
+
+      # Publishing happens once, after every target has built. Creating the
+      # release first would leave a published release missing the binaries for
+      # whichever platform failed, and `gh extension install` would fail for
+      # real users on a release that looks complete on the release page.
+      - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          binary="target/${{ matrix.target }}/release/gh-pr-digest"
-          [ -f "$binary.exe" ] && binary="$binary.exe"
-
-          # `gh extension install` matches assets by the <os>-<arch> suffix;
-          # the name and tag in front of it are for humans reading the release.
-          asset="gh-pr-digest_${GITHUB_REF_NAME}_${{ matrix.asset }}"
-          cp "$binary" "$asset"
-
-          gh release upload "${GITHUB_REF_NAME}" "$asset" --clobber
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "${GITHUB_REF_NAME}" \
+            --generate-notes \
+            --verify-tag \
+            dist/*
