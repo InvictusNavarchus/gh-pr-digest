@@ -35,7 +35,7 @@ pub enum Error {
 pub type Result<T> = std::result::Result<T, Error>;
 
 impl Error {
-    pub fn exit_code(&self) -> i32 {
+    pub fn exit_code(&self) -> u8 {
         match self {
             Error::Repo(_) => 3,
             Error::Auth(_) => 4,

@@ -15,11 +15,14 @@ pub const DEFAULT_HOST: &str = "github.com";
 
 /// Decide which GitHub instance to talk to.
 ///
-/// A URL target is the most specific signal we have, so it wins outright.
-pub fn resolve_host(url_host: Option<&str>, flag: Option<&str>) -> String {
-    url_host
+/// `explicit` is a host the user named -- in a URL target, in `-R`, or via
+/// `--hostname` -- and always wins. `inferred` is a host we worked out for
+/// ourselves from a git remote, which beats the environment but loses to
+/// anything the user said out loud.
+pub fn resolve_host(explicit: Option<&str>, inferred: Option<&str>) -> String {
+    explicit
         .map(str::to_string)
-        .or_else(|| flag.map(str::to_string))
+        .or_else(|| inferred.map(str::to_string))
         .or_else(|| env::var("GH_HOST").ok().filter(|h| !h.is_empty()))
         .unwrap_or_else(|| DEFAULT_HOST.to_string())
 }
@@ -96,8 +99,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn url_host_outranks_the_flag() {
+    fn an_explicit_host_outranks_an_inferred_one() {
         assert_eq!(resolve_host(Some("ghe.corp"), Some("other")), "ghe.corp");
+        assert_eq!(resolve_host(None, Some("ghe.corp")), "ghe.corp");
     }
 
     #[test]
