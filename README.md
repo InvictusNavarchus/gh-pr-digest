@@ -9,25 +9,37 @@ read offline, grep, or hand to an editor.
 
 ## Install
 
-As a `gh` extension:
+**With the GitHub CLI** — the shortest path if you already have `gh`:
 
 ```bash
 gh extension install InvictusNavarchus/gh-pr-digest
 gh pr-digest 19
 ```
 
-As a standalone binary — download the asset for your platform from the
-[latest release](https://github.com/InvictusNavarchus/gh-pr-digest/releases/latest),
-or build it yourself:
+**Without it** — a static binary, needing neither `gh` nor a Rust toolchain:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/InvictusNavarchus/gh-pr-digest/master/install.sh | sh
+```
+
+The script installs to `~/.local/bin` and verifies the download against the
+release checksums; set `INSTALL_DIR` or `VERSION` to override either. If you
+would rather read it before running it, it lives at
+[`install.sh`](install.sh) in this repository.
+
+Windows is not covered by the script — use the `gh` extension, or take
+`windows-amd64.exe` from the
+[latest release](https://github.com/InvictusNavarchus/gh-pr-digest/releases/latest).
+
+**From source**, if you have Rust:
 
 ```bash
 cargo install --git https://github.com/InvictusNavarchus/gh-pr-digest
 ```
 
-Every release carries a `checksums.txt` if you want to verify the download.
-
-Linux binaries are statically linked against musl, so there is no glibc version
-to match.
+All three install the same binary. Linux builds are statically linked against
+musl, so there is no glibc version to match, and every release carries a
+`checksums.txt`.
 
 ## Usage
 
