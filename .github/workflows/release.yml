@@ -1,4 +1,15 @@
 name: Release
+#
+# The ritual:
+#   1. `cargo release` pushes a v* tag, which starts this workflow.
+#   2. It builds all five targets and attaches them to a *draft* release,
+#      creating the draft if you have not already made one yourself.
+#   3. You write the release notes and press publish.
+#
+# Publication is deliberately the last step. Triggering on `release: published`
+# instead would mean the release goes public the moment the workflow starts,
+# leaving several minutes in which `gh extension install` resolves a release
+# that has no binaries attached yet.
 
 on:
   push:
@@ -83,9 +94,9 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  publish:
+  draft:
     needs: build
-    # Only a tag produces a release; a manual run is a rehearsal that stops
+    # Only a tag assembles a release; a manual run is a rehearsal that stops
     # after the binaries have been proven to build.
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-24.04
@@ -103,16 +114,31 @@ jobs:
           sha256sum * > checksums.txt
           cat checksums.txt
 
-      # Publishing happens once, after every target has built. Creating the
-      # release first would leave a published release missing the binaries for
-      # whichever platform failed, and `gh extension install` would fail for
-      # real users on a release that looks complete on the release page.
-      - name: Publish
+      # Assembly happens once, after every target has built. Uploading as each
+      # target finished would leave the release briefly advertising a platform
+      # whose binary had not arrived yet.
+      - name: Attach the binaries to a draft release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${GITHUB_REF_NAME}" \
-            --title "${GITHUB_REF_NAME}" \
-            --generate-notes \
-            --verify-tag \
-            dist/*
+          tag="${GITHUB_REF_NAME}"
+
+          # `view || create` keeps this order-independent: the draft may already
+          # exist because you wrote the notes while the build ran, or not exist
+          # at all because you have not started on them yet.
+          if gh release view "$tag" >/dev/null 2>&1; then
+            if [ "$(gh release view "$tag" --json isDraft --jq .isDraft)" != "true" ]; then
+              echo "::warning::$tag is already published; its binaries are arriving after the fact, so anyone who installed in between will have hit a release with no assets."
+            fi
+          else
+            gh release create "$tag" \
+              --draft \
+              --title "$tag" \
+              --notes "" \
+              --verify-tag
+          fi
+
+          gh release upload "$tag" dist/* --clobber
+
+          echo "Binaries attached. Write the notes and publish:"
+          echo "  $(gh release view "$tag" --json url --jq .url)"
