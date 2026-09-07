@@ -1,0 +1,82 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "${GITHUB_REF_NAME}" \
+            --generate-notes \
+            --verify-tag
+
+  upload:
+    needs: create-release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # `asset` must be `<os>-<arch>` in Go's vocabulary: that is what
+          # `gh extension install` looks for when picking a binary.
+          - { runner: ubuntu-latest,  target: x86_64-unknown-linux-musl,  asset: linux-amd64,      cross: true }
+          - { runner: ubuntu-latest,  target: aarch64-unknown-linux-musl, asset: linux-arm64,      cross: true }
+          - { runner: macos-latest,   target: x86_64-apple-darwin,        asset: darwin-amd64,     cross: false }
+          - { runner: macos-latest,   target: aarch64-apple-darwin,       asset: darwin-arm64,     cross: false }
+          - { runner: windows-latest, target: x86_64-pc-windows-msvc,     asset: windows-amd64.exe, cross: false }
+
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      # musl gives a statically linked Linux binary, which is the whole point
+      # of shipping a standalone tool: no glibc version to match at the far end.
+      - uses: taiki-e/install-action@v2
+        if: matrix.cross
+        with:
+          tool: cross
+
+      - name: Build
+        shell: bash
+        run: |
+          if [ "${{ matrix.cross }}" = "true" ]; then
+            cross build --release --locked --target "${{ matrix.target }}"
+          else
+            cargo build --release --locked --target "${{ matrix.target }}"
+          fi
+
+      - name: Upload the binary
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          binary="target/${{ matrix.target }}/release/gh-pr-digest"
+          [ -f "$binary.exe" ] && binary="$binary.exe"
+
+          # `gh extension install` matches assets by the <os>-<arch> suffix;
+          # the name and tag in front of it are for humans reading the release.
+          asset="gh-pr-digest_${GITHUB_REF_NAME}_${{ matrix.asset }}"
+          cp "$binary" "$asset"
+
+          gh release upload "${GITHUB_REF_NAME}" "$asset" --clobber
