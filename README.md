@@ -24,6 +24,8 @@ or build it yourself:
 cargo install --git https://github.com/InvictusNavarchus/gh-pr-digest
 ```
 
+Every release carries a `checksums.txt` if you want to verify the download.
+
 Linux binaries are statically linked against musl, so there is no glibc version
 to match.
 
