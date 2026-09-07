@@ -1,0 +1,10 @@
+# Match the commit and tag conventions the repository already used.
+pre-release-commit-message = "chore(release): bump version to v{{version}}"
+tag-name = "v{{version}}"
+tag-message = "Release v{{version}}"
+
+# Not a crates.io package — this ships as a binary built from source.
+publish = false
+
+push = true
+sign-tag = false
