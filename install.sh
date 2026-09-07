@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Install gh-pr-digest from a GitHub release.
+# Install or update gh-pr-digest from a GitHub release.
 #
 #   curl -fsSL https://raw.githubusercontent.com/InvictusNavarchus/gh-pr-digest/master/install.sh | sh
 #

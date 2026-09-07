@@ -41,6 +41,24 @@ All three install the same binary. Linux builds are statically linked against
 musl, so there is no glibc version to match, and every release carries a
 `checksums.txt`.
 
+### Updating
+
+To update to the latest release, use the command for your install method:
+
+- **With the GitHub CLI**:
+  ```bash
+  gh extension upgrade gh-pr-digest
+  ```
+- **Without it**: re-run the install script. It resolves the latest release tag,
+  verifies the checksum, and atomically replaces the binary:
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/InvictusNavarchus/gh-pr-digest/master/install.sh | sh
+  ```
+- **From source**:
+  ```bash
+  cargo install --force --git https://github.com/InvictusNavarchus/gh-pr-digest
+  ```
+
 ## Usage
 
 ```
