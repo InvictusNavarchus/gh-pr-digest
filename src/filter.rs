@@ -87,7 +87,10 @@ mod tests {
 
     #[test]
     fn default_filter_selects_everything() {
-        assert_eq!(selected(StatusFilter::All, OutdatedFilter::Include).len(), 4);
+        assert_eq!(
+            selected(StatusFilter::All, OutdatedFilter::Include).len(),
+            4
+        );
     }
 
     #[test]

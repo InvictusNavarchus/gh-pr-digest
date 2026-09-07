@@ -38,7 +38,11 @@ pub fn detect() -> Result<Repo> {
             ordered.push(found);
         }
     }
-    ordered.extend(remotes.iter().filter(|r| !REMOTE_PRIORITY.contains(&r.as_str())));
+    ordered.extend(
+        remotes
+            .iter()
+            .filter(|r| !REMOTE_PRIORITY.contains(&r.as_str())),
+    );
 
     for remote in ordered {
         if let Some(url) = remote_url(remote)

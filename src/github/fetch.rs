@@ -12,7 +12,9 @@ use serde_json::json;
 
 use crate::error::{Error, Result};
 use crate::github::client::Client;
-use crate::github::model::{Connection, IssueComment, PullRequest, Review, ReviewThread, ThreadComment};
+use crate::github::model::{
+    Connection, IssueComment, PullRequest, Review, ReviewThread, ThreadComment,
+};
 use crate::github::query;
 use crate::repo::Repo;
 

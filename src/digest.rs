@@ -38,11 +38,17 @@ impl ThreadStatus {
     }
 
     pub fn is_resolved(self) -> bool {
-        matches!(self, ThreadStatus::ResolvedActive | ThreadStatus::ResolvedOutdated)
+        matches!(
+            self,
+            ThreadStatus::ResolvedActive | ThreadStatus::ResolvedOutdated
+        )
     }
 
     pub fn is_outdated(self) -> bool {
-        matches!(self, ThreadStatus::OpenOutdated | ThreadStatus::ResolvedOutdated)
+        matches!(
+            self,
+            ThreadStatus::OpenOutdated | ThreadStatus::ResolvedOutdated
+        )
     }
 }
 

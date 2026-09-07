@@ -81,14 +81,14 @@ impl FromStr for RepoSpec {
             [owner, name] => (None, *owner, *name),
             [host, owner, name] => (Some((*host).to_string()), *owner, *name),
             _ => {
-                return Err(format!(
-                    "expected OWNER/REPO or HOST/OWNER/REPO, got {s:?}"
-                ));
+                return Err(format!("expected OWNER/REPO or HOST/OWNER/REPO, got {s:?}"));
             }
         };
 
         if owner.is_empty() || name.is_empty() {
-            return Err(format!("owner and repository must both be non-empty, got {s:?}"));
+            return Err(format!(
+                "owner and repository must both be non-empty, got {s:?}"
+            ));
         }
 
         Ok(RepoSpec {
@@ -307,7 +307,10 @@ mod tests {
             repo: "repo".into(),
             number: 19,
         };
-        assert_eq!(pr("https://github.com/owner/repo/pull/19/files").unwrap(), expected);
+        assert_eq!(
+            pr("https://github.com/owner/repo/pull/19/files").unwrap(),
+            expected
+        );
         assert_eq!(
             pr("https://github.com/owner/repo/pull/19#discussion_r123").unwrap(),
             expected
@@ -341,7 +344,11 @@ mod tests {
         assert!("/repo".parse::<RepoSpec>().is_err());
         assert_eq!(
             "owner/repo".parse::<RepoSpec>().unwrap(),
-            RepoSpec { host: None, owner: "owner".into(), name: "repo".into() }
+            RepoSpec {
+                host: None,
+                owner: "owner".into(),
+                name: "repo".into()
+            }
         );
         assert_eq!(
             "ghe.corp/owner/repo".parse::<RepoSpec>().unwrap(),

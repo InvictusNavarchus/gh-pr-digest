@@ -106,7 +106,10 @@ mod tests {
 
     #[test]
     fn dotcom_uses_the_api_subdomain_and_enterprise_uses_a_path() {
-        assert_eq!(graphql_endpoint("github.com"), "https://api.github.com/graphql");
+        assert_eq!(
+            graphql_endpoint("github.com"),
+            "https://api.github.com/graphql"
+        );
         assert_eq!(graphql_endpoint("ghe.corp"), "https://ghe.corp/api/graphql");
     }
 

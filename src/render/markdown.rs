@@ -45,7 +45,11 @@ fn description(out: &mut String, digest: &Digest) {
 }
 
 fn reviews(out: &mut String, digest: &Digest) {
-    let substantive: Vec<_> = digest.reviews.iter().filter(|r| r.is_substantive()).collect();
+    let substantive: Vec<_> = digest
+        .reviews
+        .iter()
+        .filter(|r| r.is_substantive())
+        .collect();
     if substantive.is_empty() {
         return;
     }
@@ -98,7 +102,10 @@ fn threads(out: &mut String, digest: &Digest, filter: Filter) {
     overview(out, digest, selected.len(), filter);
 
     if selected.is_empty() {
-        let _ = writeln!(out, "_No inline review threads match the selected criteria._");
+        let _ = writeln!(
+            out,
+            "_No inline review threads match the selected criteria._"
+        );
         let _ = writeln!(out);
         return;
     }

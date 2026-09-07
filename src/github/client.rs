@@ -127,9 +127,8 @@ impl Client {
             _ => {}
         }
 
-        let envelope: Envelope<T> = serde_json::from_str(body).map_err(|e| {
-            Error::Api(format!("could not parse the GraphQL response: {e}"))
-        })?;
+        let envelope: Envelope<T> = serde_json::from_str(body)
+            .map_err(|e| Error::Api(format!("could not parse the GraphQL response: {e}")))?;
 
         if !envelope.errors.is_empty() {
             // A NOT_FOUND is the overwhelmingly common case (wrong repo, wrong

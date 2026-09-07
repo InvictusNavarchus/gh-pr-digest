@@ -103,10 +103,7 @@ mod tests {
         let path = Path::new("out/pr-9-digest.md");
         let temporary = with_suffix(path, ".tmp-1");
         assert_eq!(temporary.parent(), path.parent());
-        assert_eq!(
-            temporary.file_name().unwrap(),
-            "pr-9-digest.md.tmp-1"
-        );
+        assert_eq!(temporary.file_name().unwrap(), "pr-9-digest.md.tmp-1");
     }
 
     #[test]

@@ -7,9 +7,9 @@ use gh_pr_digest::digest::Digest;
 use gh_pr_digest::error::Result;
 use gh_pr_digest::filter::Filter;
 use gh_pr_digest::github::{auth, client::Client, fetch};
+use gh_pr_digest::output;
 use gh_pr_digest::render::markdown;
 use gh_pr_digest::repo::{self, Repo};
-use gh_pr_digest::output;
 
 fn main() -> ExitCode {
     let cli = Cli::parse();
