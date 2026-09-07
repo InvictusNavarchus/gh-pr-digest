@@ -30,7 +30,7 @@ const REVIEW_FIELDS: &str = r"
 
 const COMMENT_FIELDS: &str = r"
       pageInfo { hasNextPage endCursor }
-      nodes { author { login } createdAt body }
+      nodes { author { login } createdAt body url }
 ";
 
 const THREAD_COMMENT_FIELDS: &str = r"

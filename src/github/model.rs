@@ -59,6 +59,7 @@ pub struct IssueComment {
     pub author: Option<Actor>,
     pub created_at: String,
     pub body: String,
+    pub url: String,
 }
 
 #[derive(Debug, Deserialize)]
