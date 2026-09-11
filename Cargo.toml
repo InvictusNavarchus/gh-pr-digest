@@ -6,6 +6,14 @@ description = "Download GitHub PR reviews, inline threads, and comments to Markd
 repository = "https://github.com/InvictusNavarchus/gh-pr-digest"
 categories = ["command-line-utilities", "development-tools"]
 keywords = ["github", "pull-request", "review", "cli", "gh-extension"]
+include = [
+    "src/**/*",
+    "Cargo.toml",
+    "Cargo.lock",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE*",
+]
 
 [dependencies]
 clap = { version = "4.6.6", features = ["derive"] }
