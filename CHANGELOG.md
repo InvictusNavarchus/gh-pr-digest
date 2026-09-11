@@ -6,6 +6,7 @@ upgrading, not for someone reading the diff — lead with anything that changes
 behaviour.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+How to write entries and cut a release: [docs/releasing.md](docs/releasing.md).
 
 <!-- next-header -->
 
