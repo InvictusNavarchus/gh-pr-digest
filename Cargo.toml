@@ -3,6 +3,7 @@ name = "gh-pr-digest"
 version = "0.1.0"
 edition = "2024"
 description = "Download GitHub PR reviews, inline threads, and comments to Markdown"
+readme = "README.md"
 repository = "https://github.com/InvictusNavarchus/gh-pr-digest"
 categories = ["command-line-utilities", "development-tools"]
 keywords = ["github", "pull-request", "review", "cli", "gh-extension"]
