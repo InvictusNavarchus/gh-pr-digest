@@ -9,6 +9,9 @@ publish = false
 push = true
 sign-tag = true
 
+# Refuse to release from a branch other than master.
+allow-branch = ["master"]
+
 # Roll CHANGELOG.md over inside the release commit, so the tag already carries
 # the finished section: "## [Unreleased] - ReleaseDate" becomes
 # "## [x.y.z] - <today>", a fresh empty Unreleased heading goes above it, and
