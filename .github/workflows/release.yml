@@ -1,10 +1,14 @@
 name: Release
 #
 # The ritual:
-#   1. `cargo release` pushes a v* tag, which starts this workflow.
-#   2. It builds all five targets and attaches them to a *draft* release,
-#      creating the draft if you have not already made one yourself.
-#   3. You write the release notes and press publish.
+#   1. Each change adds its entry under Unreleased in CHANGELOG.md.
+#   2. `cargo release` renames that section to the new version and pushes a v*
+#      tag, which starts this workflow.
+#   3. It builds all five targets, then publishes the release with the binaries
+#      attached and that section as its notes.
+#
+# Nothing here waits on a human, so do not create releases in the web UI: a
+# release that is already published when this runs fails the workflow.
 #
 # Publication is deliberately the last step. Triggering on `release: published`
 # instead would mean the release goes public the moment the workflow starts,
@@ -94,9 +98,9 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  draft:
+  publish:
     needs: build
-    # Only a tag assembles a release; a manual run is a rehearsal that stops
+    # Only a tag publishes a release; a manual run is a rehearsal that stops
     # after the binaries have been proven to build.
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-24.04
@@ -114,31 +118,39 @@ jobs:
           sha256sum * > checksums.txt
           cat checksums.txt
 
+      # The pre-release-hook already refused an empty section before the tag
+      # was pushed; this is the backstop for a tag that did not come from
+      # `cargo release`.
+      - name: Extract the release notes
+        run: scripts/release-notes.sh "${GITHUB_REF_NAME#v}" > notes.md
+
       # Assembly happens once, after every target has built. Uploading as each
       # target finished would leave the release briefly advertising a platform
-      # whose binary had not arrived yet.
-      - name: Attach the binaries to a draft release
+      # whose binary had not arrived yet. For the same reason the release is
+      # built up as a draft and only flipped public once the uploads are done.
+      - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           tag="${GITHUB_REF_NAME}"
 
-          # `view || create` keeps this order-independent: the draft may already
-          # exist because you wrote the notes while the build ran, or not exist
-          # at all because you have not started on them yet.
           if gh release view "$tag" >/dev/null 2>&1; then
             if [ "$(gh release view "$tag" --json isDraft --jq .isDraft)" != "true" ]; then
-              echo "::warning::$tag is already published; its binaries are arriving after the fact, so anyone who installed in between will have hit a release with no assets."
+              echo "::error::$tag was published before this workflow attached its binaries; anyone who installed in between hit a release with no assets. Releases are published from here, not from the web UI."
+              exit 1
             fi
+            # A draft left behind by an earlier run of this workflow that failed
+            # partway, now being re-run: take it over.
+            gh release edit "$tag" --notes-file notes.md
           else
             gh release create "$tag" \
               --draft \
               --title "$tag" \
-              --notes "" \
+              --notes-file notes.md \
               --verify-tag
           fi
 
           gh release upload "$tag" dist/* --clobber
+          gh release edit "$tag" --draft=false
 
-          echo "Binaries attached. Write the notes and publish:"
-          echo "  $(gh release view "$tag" --json url --jq .url)"
+          echo "Published: $(gh release view "$tag" --json url --jq .url)"
