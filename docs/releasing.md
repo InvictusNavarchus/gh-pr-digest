@@ -67,13 +67,18 @@ fixing it means deleting and re-pushing the tag.
 
 On a pushed `v*` tag, the workflow:
 
-1. builds all five targets — Linux (musl) and macOS on amd64 and arm64, and
+1. verifies the tag matches the Cargo version and runs `cargo test --locked`;
+2. builds all five targets — Linux (musl) and macOS on amd64 and arm64, and
    Windows on amd64 — each as a bare binary named for its `<os>-<arch>`;
-2. writes one `checksums.txt` covering all of them;
-3. extracts that version's section from `CHANGELOG.md` as the notes, failing if
+3. writes one `checksums.txt` covering all of them;
+4. extracts that version's section from `CHANGELOG.md` as the notes, failing if
    it is empty;
-4. creates the release **as a draft** with every binary attached;
-5. makes it public.
+5. creates the release **as a draft** with every binary attached;
+6. makes it public.
+
+The build matrix waits for validation. A manually pushed tag cannot bypass the
+version check or test suite. Manual workflow runs perform validation and builds
+but never publish, even when dispatched against a tag.
 
 Publishing last matters because both installers resolve the latest release
 the moment it is public: `gh extension install` picks the binary matching its
