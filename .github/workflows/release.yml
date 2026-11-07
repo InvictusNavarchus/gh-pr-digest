@@ -23,7 +23,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   CARGO_TERM_COLOR: always
@@ -120,6 +120,8 @@ jobs:
 
   publish:
     needs: build
+    permissions:
+      contents: write
     # Only a tag publishes a release; a manual run is a rehearsal that stops
     # after the binaries have been proven to build.
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')

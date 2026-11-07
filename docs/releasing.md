@@ -80,6 +80,10 @@ The build matrix waits for validation. A manually pushed tag cannot bypass the
 version check or test suite. Manual workflow runs perform validation and builds
 but never publish, even when dispatched against a tag.
 
+Validation and build jobs use read access to repository contents. Only the
+publication job receives `contents: write` on GitHub's built-in token, so no
+additional release secret is required.
+
 Publishing last matters because both installers resolve the latest release
 the moment it is public: `gh extension install` picks the binary matching its
 platform suffix, and `install.sh` follows `releases/latest`. A release that
