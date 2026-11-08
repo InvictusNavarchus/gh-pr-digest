@@ -63,6 +63,28 @@ To update to the latest release, use the command for your install method:
   cargo install --force --git https://github.com/InvictusNavarchus/gh-pr-digest
   ```
 
+If you selected a custom `INSTALL_DIR` for the standalone installer, pass that
+same directory when updating.
+
+### Uninstalling
+
+Use the removal command for your installation method:
+
+- **GitHub CLI extension**:
+  ```bash
+  gh extension remove gh-pr-digest
+  ```
+- **Standalone install script**:
+  ```bash
+  rm -- "$HOME/.local/bin/gh-pr-digest"
+  ```
+  If you used a custom `INSTALL_DIR`, remove `gh-pr-digest` from that directory
+  instead. No checkout or separate uninstaller is needed.
+- **Cargo source installation**:
+  ```bash
+  cargo uninstall gh-pr-digest
+  ```
+
 ## Usage
 
 ```
