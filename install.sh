@@ -81,13 +81,14 @@ verify() {
     elif command -v shasum >/dev/null 2>&1; then
         checker="shasum -a 256"
     else
-        echo "install: no sha256 tool found, skipping checksum verification" >&2
-        return 0
+        die "sha256sum or shasum is required to verify the release; nothing was installed"
     fi
 
-    expected=$(grep " \{1,2\}$name\$" "$sums" | cut -d' ' -f1) ||
-        die "no checksum recorded for $name"
-    [ -n "$expected" ] || die "no checksum recorded for $name"
+    expected=$(awk -v name="$name" '$2 == name { print $1 }' "$sums")
+    [ "${#expected}" -eq 64 ] || die "expected exactly one SHA-256 checksum for $name"
+    case "$expected" in
+        *[!0-9a-f]*) die "invalid SHA-256 checksum for $name" ;;
+    esac
 
     actual=$($checker "$file" | cut -d' ' -f1)
     [ "$expected" = "$actual" ] ||
@@ -115,11 +116,9 @@ main() {
         die "no release asset $asset.
 Check https://github.com/$REPO/releases for available builds."
 
-    if curl -fsSL "$base/checksums.txt" -o "$tmp/checksums.txt" 2>/dev/null; then
-        verify "$tmp/$BIN" "$asset" "$tmp/checksums.txt"
-    else
-        echo "install: no checksums.txt in this release, skipping verification" >&2
-    fi
+    curl -fsSL "$base/checksums.txt" -o "$tmp/checksums.txt" ||
+        die "could not download checksums.txt for $version; nothing was installed"
+    verify "$tmp/$BIN" "$asset" "$tmp/checksums.txt"
 
     chmod +x "$tmp/$BIN"
     mkdir -p "$INSTALL_DIR"

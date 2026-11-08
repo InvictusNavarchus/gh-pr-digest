@@ -27,6 +27,10 @@ release checksums; set `INSTALL_DIR` or `VERSION` to override either. If you
 would rather read it before running it, it lives at
 [`install.sh`](install.sh) in this repository.
 
+The standalone installer requires `curl` and either `sha256sum` or `shasum`.
+Missing checksums, unavailable verification tools, and checksum mismatches abort
+the installation without replacing an existing binary.
+
 Windows is not covered by the script — use the `gh` extension, or take
 `windows-amd64.exe` from the
 [latest release](https://github.com/InvictusNavarchus/gh-pr-digest/releases/latest).

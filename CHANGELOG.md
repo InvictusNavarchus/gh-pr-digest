@@ -10,6 +10,11 @@ How to write entries and cut a release: [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+### Fixed
+
+- Standalone installs and updates now stop when release checksums are missing,
+  invalid, or cannot be verified, preserving any previously installed binary.
+
 ## [0.1.0] - 2026-09-07
 
 Initial release.

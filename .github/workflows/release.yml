@@ -48,6 +48,9 @@ jobs:
       - name: Test
         run: cargo test --locked
 
+      - name: Test installation
+        run: python3 tests/install.py
+
   build:
     needs: validate
     strategy:
