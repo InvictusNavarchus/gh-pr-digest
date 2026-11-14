@@ -173,6 +173,12 @@ The host is resolved from the PR URL if you gave one, then `--hostname`, then
 | 5 | Repository or pull request not found |
 | 6 | Network failure, or rate limited |
 
+When GitHub rate limits a request, the tool exits with code 6 without retrying
+automatically. The error tells you how many seconds to wait before trying again,
+using GitHub's `Retry-After` or exhausted-quota reset time when available. If
+neither is available, it advises waiting at least one minute. Transient server
+errors are retried up to three attempts with short delays.
+
 ## Output
 
 The document contains the pull request's metadata and description, top-level

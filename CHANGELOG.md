@@ -12,6 +12,9 @@ How to write entries and cut a release: [docs/releasing.md](docs/releasing.md).
 
 ### Fixed
 
+- **Behaviour change:** GitHub rate-limit errors now exit with code 6 and retry
+  guidance, including limits returned as HTTP 200 or 403. Rate-limited requests
+  are no longer retried automatically after one or two seconds.
 - Standalone installs and updates now stop when release checksums are missing,
   invalid, or cannot be verified, preserving any previously installed binary.
 
