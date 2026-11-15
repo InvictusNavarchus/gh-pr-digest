@@ -173,6 +173,11 @@ The host is resolved from the PR URL if you gave one, then `--hostname`, then
 | 5 | Repository or pull request not found |
 | 6 | Network failure, or rate limited |
 
+If GitHub indicates more pages exist but supplies a missing, empty, or repeated
+pagination cursor, the tool exits with code 1 and identifies the affected
+collection. It does not write a digest or replace an existing output file when
+fetching fails.
+
 When GitHub rate limits a request, the tool exits with code 6 without retrying
 automatically. The error tells you how many seconds to wait before trying again,
 using GitHub's `Retry-After` or exhausted-quota reset time when available. If
