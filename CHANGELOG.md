@@ -12,6 +12,9 @@ How to write entries and cut a release: [docs/releasing.md](docs/releasing.md).
 
 ### Fixed
 
+- **Behaviour change:** Missing, empty, or repeated pagination cursors now stop
+  the download with exit code 1 instead of silently producing an incomplete
+  digest or repeatedly fetching the same pages.
 - **Behaviour change:** GitHub rate-limit errors now exit with code 6 and retry
   guidance, including limits returned as HTTP 200 or 403. Rate-limited requests
   are no longer retried automatically after one or two seconds.
